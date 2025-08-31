@@ -2,6 +2,9 @@ import re
 import logging
 from typing import Dict, Any, List, Optional, Callable
 from app.core.whatsapp_client import whatsapp_client
+from app.modules.email_sender import email_sender
+from app.modules.todo_manager import todo_manager
+from app.modules.reminder_scheduler import reminder_scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +102,7 @@ Type 'help' for this message.
     def _todo_command(self, from_number: str, args: List[str], parsed: Dict[str, Any]) -> str:
         """Handle todo commands"""
         if not args:
-            return "Usage: todo <add|list|done> [task|id]"
+            return "Usage: todo <add|list|done|delete> [task|id]"
         
         subcommand = args[0].lower()
         
@@ -107,19 +110,36 @@ Type 'help' for this message.
             if len(args) < 2:
                 return "Usage: todo add <task>"
             task = " ".join(args[1:])
-            # TODO: Implement todo storage
-            return f"✅ Added task: {task}"
+            todo = todo_manager.add_todo(task)
+            return f"✅ Added task: {task} (ID: {todo['id']})"
         
         elif subcommand == "list":
-            # TODO: Implement todo listing
-            return "📝 Your tasks:\n1. Buy milk\n2. Call boss\n3. Review project"
+            return todo_manager.format_todo_list()
         
         elif subcommand == "done":
             if len(args) < 2:
                 return "Usage: todo done <id>"
-            task_id = args[1]
-            # TODO: Implement todo completion
-            return f"✅ Marked task {task_id} as done"
+            try:
+                task_id = int(args[1])
+                todo = todo_manager.complete_todo(task_id)
+                if todo:
+                    return f"✅ Marked task {task_id} as done: {todo['task']}"
+                else:
+                    return f"❌ Task {task_id} not found"
+            except ValueError:
+                return "❌ Invalid task ID. Please provide a number."
+        
+        elif subcommand == "delete":
+            if len(args) < 2:
+                return "Usage: todo delete <id>"
+            try:
+                task_id = int(args[1])
+                if todo_manager.delete_todo(task_id):
+                    return f"🗑️ Deleted task {task_id}"
+                else:
+                    return f"❌ Task {task_id} not found"
+            except ValueError:
+                return "❌ Invalid task ID. Please provide a number."
         
         else:
             return f"Unknown todo subcommand: {subcommand}"
@@ -133,9 +153,13 @@ Type 'help' for this message.
         subject = args[1]
         body = " ".join(args[2:])
         
-        # TODO: Implement email sending
-        logger.info(f"Email command: to={to_email}, subject={subject}, body={body}")
-        return f"📧 Email sent to {to_email}\nSubject: {subject}\nBody: {body}"
+        # Send email
+        result = email_sender.send_email(to_email, subject, body)
+        
+        if result.get('success'):
+            return f"📧 Email sent successfully!\nTo: {to_email}\nSubject: {subject}"
+        else:
+            return f"❌ Failed to send email: {result.get('error', 'Unknown error')}"
     
     def _remind_command(self, from_number: str, args: List[str], parsed: Dict[str, Any]) -> str:
         """Handle reminder commands"""
@@ -145,9 +169,13 @@ Type 'help' for this message.
         time_str = args[0]
         message = " ".join(args[1:])
         
-        # TODO: Implement reminder scheduling
-        logger.info(f"Reminder set: {time_str} - {message}")
-        return f"⏰ Reminder set for {time_str}: {message}"
+        # Add reminder
+        reminder = reminder_scheduler.add_reminder(time_str, message, from_number)
+        
+        if reminder:
+            return f"⏰ Reminder set for {time_str}: {message} (ID: {reminder['id']})"
+        else:
+            return "❌ Failed to set reminder"
     
     def _meeting_command(self, from_number: str, args: List[str], parsed: Dict[str, Any]) -> str:
         """Handle meeting commands"""
