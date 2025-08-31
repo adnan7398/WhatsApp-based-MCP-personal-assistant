@@ -12,7 +12,7 @@ class CommandRouter:
     def __init__(self):
         self.commands: Dict[str, Callable] = {}
         self.help_text = """
-🤖 WhatsApp Control Hub Commands:
+🤖 Telegram Control Hub Commands:
 
 📧 Email Commands:
 • email <to> <subject> <body> - Send email
@@ -72,7 +72,7 @@ Type 'help' for this message.
             "full_message": message
         }
     
-    def handle_message(self, from_number: str, message: str) -> str:
+    def handle_message(self, chat_id: str, message: str) -> str:
         """Handle incoming message and return response"""
         try:
             parsed = self.parse_command(message)
@@ -83,7 +83,7 @@ Type 'help' for this message.
             args = parsed["args"]
             
             if command in self.commands:
-                return self.commands[command](from_number, args, parsed)
+                return self.commands[command](chat_id, args, parsed)
             else:
                 return f"Unknown command: {command}. Type 'help' for available commands."
                 
@@ -91,15 +91,15 @@ Type 'help' for this message.
             logger.error(f"Error handling message: {e}")
             return "Sorry, an error occurred while processing your command."
     
-    def _help_command(self, from_number: str, args: List[str], parsed: Dict[str, Any]) -> str:
+    def _help_command(self, chat_id: str, args: List[str], parsed: Dict[str, Any]) -> str:
         """Handle help command"""
         return self.help_text
     
-    def _ping_command(self, from_number: str, args: List[str], parsed: Dict[str, Any]) -> str:
+    def _ping_command(self, chat_id: str, args: List[str], parsed: Dict[str, Any]) -> str:
         """Handle ping command"""
         return "pong 🏓"
     
-    def _todo_command(self, from_number: str, args: List[str], parsed: Dict[str, Any]) -> str:
+    def _todo_command(self, chat_id: str, args: List[str], parsed: Dict[str, Any]) -> str:
         """Handle todo commands"""
         if not args:
             return "Usage: todo <add|list|done|delete> [task|id]"
@@ -144,7 +144,7 @@ Type 'help' for this message.
         else:
             return f"Unknown todo subcommand: {subcommand}"
     
-    def _email_command(self, from_number: str, args: List[str], parsed: Dict[str, Any]) -> str:
+    def _email_command(self, chat_id: str, args: List[str], parsed: Dict[str, Any]) -> str:
         """Handle email commands"""
         if len(args) < 3:
             return "Usage: email <to> <subject> <body>"
@@ -161,23 +161,23 @@ Type 'help' for this message.
         else:
             return f"❌ Failed to send email: {result.get('error', 'Unknown error')}"
     
-    def _remind_command(self, from_number: str, args: List[str], parsed: Dict[str, Any]) -> str:
+    def _remind_command(self, chat_id: str, args: List[str], parsed: Dict[str, Any]) -> str:
         """Handle reminder commands"""
         if len(args) < 2:
-            return "Usage: remind <time> <message>"
+            return "Usage: remind <time> <message> <message>"
         
         time_str = args[0]
         message = " ".join(args[1:])
         
         # Add reminder
-        reminder = reminder_scheduler.add_reminder(time_str, message, from_number)
+        reminder = reminder_scheduler.add_reminder(time_str, message, chat_id)
         
         if reminder:
             return f"⏰ Reminder set for {time_str}: {message} (ID: {reminder['id']})"
         else:
             return "❌ Failed to set reminder"
     
-    def _meeting_command(self, from_number: str, args: List[str], parsed: Dict[str, Any]) -> str:
+    def _meeting_command(self, chat_id: str, args: List[str], parsed: Dict[str, Any]) -> str:
         """Handle meeting commands"""
         if not args:
             return "Usage: meeting <join|record> [url]"
