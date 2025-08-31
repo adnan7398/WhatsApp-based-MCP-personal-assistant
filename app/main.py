@@ -7,6 +7,7 @@ from typing import Dict, Any
 from app.config.settings import settings
 from app.core.whatsapp_client import whatsapp_client
 from app.core.command_router import command_router
+from app.modules.reminder_scheduler import reminder_scheduler
 
 # Configure logging
 logging.basicConfig(
@@ -108,6 +109,22 @@ async def get_status():
         "email_configured": bool(settings.smtp_username and settings.smtp_password),
         "available_commands": list(command_router.commands.keys())
     }
+
+@app.on_event("startup")
+async def startup_event():
+    """Startup event handler"""
+    logger.info("Starting WhatsApp Control Hub...")
+    # Start the reminder scheduler
+    reminder_scheduler.start_scheduler()
+    logger.info("Reminder scheduler started")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Shutdown event handler"""
+    logger.info("Shutting down WhatsApp Control Hub...")
+    # Stop the reminder scheduler
+    reminder_scheduler.stop_scheduler()
+    logger.info("Reminder scheduler stopped")
 
 if __name__ == "__main__":
     import uvicorn
