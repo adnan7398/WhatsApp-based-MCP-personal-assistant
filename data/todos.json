@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "task": "Test task from setup script",
+    "priority": "medium",
+    "status": "pending",
+    "created_at": "2025-08-31T12:23:20.288439",
+    "due_date": null,
+    "completed_at": null
+  }
+]
