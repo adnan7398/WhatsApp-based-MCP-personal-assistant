@@ -1,7 +1,7 @@
 import re
 import logging
 from typing import Dict, Any, List, Optional, Callable
-from app.core.whatsapp_client import whatsapp_client
+from app.core.telegram_client import telegram_client
 from app.modules.email_sender import email_sender
 from app.modules.todo_manager import todo_manager
 from app.modules.reminder_scheduler import reminder_scheduler

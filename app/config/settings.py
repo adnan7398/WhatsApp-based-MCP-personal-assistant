@@ -6,7 +6,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseSettings):
-    # WhatsApp Business API Configuration
+    # Telegram Bot Configuration
+    telegram_bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    telegram_webhook_secret: str = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
+    
+    # WhatsApp Business API Configuration (kept for reference)
     whatsapp_access_token: str = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
     whatsapp_phone_number_id: str = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
     whatsapp_verify_token: str = os.getenv("WHATSAPP_VERIFY_TOKEN", "")
